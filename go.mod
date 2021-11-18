@@ -1,4 +1,4 @@
-module zozo.com/coppe
+module github.com/st-tech/coppe-oss
 
 go 1.16
 

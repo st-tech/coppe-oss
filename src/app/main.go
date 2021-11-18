@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"zozo.com/coppe/src/app/services"
+	"github.com/st-tech/coppe-oss/src/app/services"
 )
 
 func main() {
