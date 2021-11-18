@@ -233,3 +233,11 @@ channel: CRITICAL
 if文はこのように書ける。
 
 \* テキストテンプレートライブラリを使用していますので、書き方など詳しくは[公式ドキュメント](https://pkg.go.dev/text/template)を参照してください。
+
+## Contributing
+
+IssueやPull Requestの作成など、コントリビューションは誰でも歓迎です。コントリビューターは[Contributor Covenant](http://contributor-covenant.org/)を遵守することを期待します。
+
+## License
+
+CoppeはMITライセンスを適応してオープンソースとして公開しています
