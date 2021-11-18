@@ -1,0 +1,91 @@
+name: Deploy Functions on Push to main
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "**.go"
+      - "**.yaml"
+      - "**.sql"
+      - "go.**"
+
+jobs:
+
+  functions-scheduler-deploy:
+
+    runs-on: ubuntu-latest
+
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+      TOPIC_NAME_SCHEDULER: coppe-scheduler-topic
+      GO_VERSION: go116
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+          export_default_credentials: true
+        
+      - name: Get GCP_PROJECT_ID from .env.yaml
+        id: lookup_gcp_project_id
+        uses: devorbitus/yq-action-output@v1.0
+        with:      
+          cmd: yq eval '.GCP_PROJECT_ID' .env.yaml
+      
+      - name: Deploy to Cloud Functions (Scheduler)
+        run: |
+          gcloud functions deploy Coppe-Scheduler \
+            --entry-point=NotifyPubsub \
+            --runtime=$GO_VERSION \
+            --region=us-central1 \
+            --trigger-topic=$TOPIC_NAME_SCHEDULER \
+            --project=${{ steps.lookup_gcp_project_id.outputs.result }} \
+            --env-vars-file .env.yaml \
+            --timeout=60 \
+            --max-instances=1 \
+            --memory=128 \
+            --service-account=coppe-scheduler-runtime@${{ steps.lookup_gcp_project_id.outputs.result }}.iam.gserviceaccount.com
+
+  functions-validator-deploy:
+
+    runs-on: ubuntu-latest
+
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+      TOPIC_NAME_VALIDATOR: coppe-validator-topic
+      GO_VERSION: go116
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+          export_default_credentials: true
+      
+      - name: Get GCP_PROJECT_ID from .env.yaml
+        id: lookup_gcp_project_id
+        uses: devorbitus/yq-action-output@v1.0
+        with:      
+          cmd: yq eval '.GCP_PROJECT_ID' .env.yaml
+      
+      - name: Deploy to Cloud Functions (Validator)
+        run: |
+          gcloud functions deploy Coppe-Validator \
+            --entry-point=CheckRule \
+            --runtime=$GO_VERSION \
+            --region=us-central1 \
+            --trigger-topic=$TOPIC_NAME_VALIDATOR \
+            --project=${{ steps.lookup_gcp_project_id.outputs.result }} \
+            --env-vars-file .env.yaml \
+            --timeout=60 \
+            --clear-max-instances \
+            --memory=128 \
+            --service-account=coppe-validator-runtime@${{ steps.lookup_gcp_project_id.outputs.result }}.iam.gserviceaccount.com

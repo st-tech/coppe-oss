@@ -1,0 +1,52 @@
+name: Check Build on PR
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcloud-credentials.json
+      GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: gcloud auth
+        run: echo ${GOOGLE_APPLICATION_CREDENTIALS_JSON} > ${GOOGLE_APPLICATION_CREDENTIALS}
+      
+      - name: Get GCP_PROJECT_ID from .env.yaml
+        id: lookup_gcp_project_id
+        uses: devorbitus/yq-action-output@v1.0
+        with:      
+          cmd: yq eval '.GCP_PROJECT_ID' .env.yaml
+      
+      - name: Get SLACK_HOOK_URL from .env.yaml
+        id: lookup_slack_hook_url
+        uses: devorbitus/yq-action-output@v1.0
+        with:      
+          cmd: yq eval '.SLACK_HOOK_URL' .env.yaml
+      
+      - name: Get TIMEZONE from .env.yaml
+        id: lookup_timezone
+        uses: devorbitus/yq-action-output@v1.0
+        with:      
+          cmd: yq eval '.TIMEZONE' .env.yaml
+      
+      - name: Build
+        run: go build -v .
+      
+      - name: Test
+        env:
+          GCP_PROJECT_ID: ${{ steps.lookup_gcp_project_id.outputs.result }}
+          SLACK_HOOK_URL: ${{ steps.lookup_slack_hook_url.outputs.result }}
+          TIMEZONE: ${{ steps.lookup_timezone.outputs.result }}
+        run: go test -v ./src/app/services

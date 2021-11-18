@@ -1,0 +1,78 @@
+name: Validate Terraform on PR
+
+on:
+  pull_request:
+    paths: 
+      - '**.tf'
+
+jobs:
+  validate:
+    
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcloud-credentials.json
+      GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Set up Terraform CLI
+        uses: hashicorp/setup-terraform@v1
+
+      - name: gcloud auth
+        run: echo ${GOOGLE_APPLICATION_CREDENTIALS_JSON} > ${GOOGLE_APPLICATION_CREDENTIALS}
+
+      - name: Check Terraform format
+        run: terraform fmt -check=true -diff=true
+
+      - name: Terraform init
+        run: terraform init
+      
+      - name: Terraform plan
+        id: tf_plan
+        run: terraform plan -no-color -var-file="coppe.tfvars.json"
+
+      - name: Generate comment from tf_plan
+        uses: actions/github-script@0.9.0
+        id: tf_plan_result
+        env:
+          tf_plan_stdout: "${{ steps.tf_plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          result-encoding: string
+          script: |
+            const plan_change_regexp = /Plan: \d+ to add, \d+ to change, \d+ to destroy\./;
+            const plan_no_change_regexp = /No changes. Infrastructure is up-to-date\./;
+            const summary_extractor = ((plan_output) => {
+              return plan_output.match(plan_change_regexp) ||
+                plan_output.match(plan_no_change_regexp) ||
+                "Unexpected plan output.";
+            })
+            const tf_plan_summary = summary_extractor(process.env.tf_plan_stdout);
+            const output = `#### terraform plan: \`${ tf_plan_summary }\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`${ process.env.tf_plan_stdout }\`\`\`
+
+            </details>
+
+            ---
+
+            *Pusher: Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+            return output
+
+      - name: Create or Update pull request comment for Terraform plan
+        uses: marocchino/sticky-pull-request-comment@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          header: terraform plan
+          message: |
+            ${{ steps.tf_plan_result.outputs.result }}

@@ -1,0 +1,36 @@
+name: Apply Terraform on Push to main
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "**.tf"
+
+jobs:
+  tf-apply:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcloud-credentials.json
+      GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Set up Terraform CLI
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Copy GCP credential key
+        run: echo $GOOGLE_APPLICATION_CREDENTIALS_JSON > $GOOGLE_APPLICATION_CREDENTIALS
+
+      - name: Terraform init
+        run: terraform init
+      
+      - name: Terraform apply
+        run: terraform apply --auto-approve -var-file="coppe.tfvars.json"
