@@ -194,3 +194,11 @@ e.g.
 ```
 
 \* For more details of syntax, please refer to the document for text/template (https://pkg.go.dev/text/template).
+
+## Contributing
+
+Contribution is welcome from anyone. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org/) code of conduct.
+
+## License
+
+Coppe is available as open source under the terms of the MIT License. For more details, see the [LICENSE](./LICENSE.txt) file.
