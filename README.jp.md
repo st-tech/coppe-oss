@@ -1,14 +1,14 @@
 # Coppe
 
-BigQuery用データ品質監視ツール。定期的なBigQueryへの監視、またSlackへの通知を行います。監視項目の追加はYAMLとSQLファイルのみで可能です。
+Coppeは、BigQuery用データ品質監視ツールです。定期的なBigQueryへの監視やSlackへの通知を行います。監視項目の追加はYAMLとSQLファイルのみで可能です。
 
-インフラ構成は以下の画像を参照ください。TerraformとGitHub Actionsによって自動デプロイが可能となっております。
+インフラ構成は下図の通りです。TerraformとGitHub Actionsによる自動デプロイが可能です。
 
 ![Coppe Infra Diagram drawio](https://user-images.githubusercontent.com/36804811/138837195-c01eea1f-710e-4112-b3b2-aa3759f5adc2.png)
 
 ## Required Settings
 
-1. Github Actions Secretsの追加
+1. GitHub Actions Secretsの追加
 
 - GOOGLE_APPLICATION_CREDENTIALS_JSON - JSON形式のGCP認証キー
 
@@ -21,7 +21,7 @@ BigQuery用データ品質監視ツール。定期的なBigQueryへの監視、�
 $ gcloud alpha monitoring channels list | grep 'name:'
 ```
 
-3. **.env.yaml**に環境変数を設定する
+3. **.env.yaml**に環境変数を設定
 
 - GCP_PROJECT_ID (デプロイ用のGCPプロジェクトID)
 - SLACK_HOOK_URL (アラート通知用のデフォルトのSlack Webhook URL。詳しくは[Alert Channel](#alert-channel))
@@ -49,7 +49,7 @@ $ gcloud alpha monitoring channels list | grep 'name:'
 
 ```
 
-3. GitHubにPush/Merge - Github ActionsとTerraformによって、インフラの設定やデプロイは行われます
+3. GitHubにPush/Merge - GitHub ActionsとTerraformによって、インフラの設定やデプロイは行われます
 
 
 ## Format of YAML file
@@ -72,7 +72,7 @@ $ gcloud alpha monitoring channels list | grep 'name:'
 
 毎週月曜日の12時：0 12 * * MON
 
-詳しくはこちらへ(https://github.com/adhocore/gronx#cron-expression)
+詳しくはこちら（https://github.com/adhocore/gronx#cron-expression）
 
 
 ### SQL in File
@@ -99,7 +99,7 @@ SELECT count(*) FROM foo
 
 ### SQL Parameters
 
-SQLにパラメーターを設定することもできます。その場合、`params:`に連想配列として書いてください。
+SQLにパラメーターを設定することもできます。その場合、`params:`に連想配列として記述してください。
 
 例：
 ```
@@ -112,7 +112,7 @@ SQLにパラメーターを設定することもできます。その場合、`p
 
 ```
 
-\* Coppeはテキストテンプレートライブラリを使用しています。書き方など詳しくはこちらへ（https://pkg.go.dev/text/template）
+\* Coppeはテキストテンプレートライブラリを使用しています。書き方など詳しくはこちら（https://pkg.go.dev/text/template）
 
 
 ### SQL Matrix
@@ -141,12 +141,12 @@ SQLにパラメーターを設定することもできます。その場合、`p
 
 ```
 
-\* Coppeはテキストテンプレートライブラリを使用しています。書き方など詳しくはこちらへ（https://pkg.go.dev/text/template）
+\* Coppeはテキストテンプレートライブラリを使用しています。書き方など詳しくはこちら（https://pkg.go.dev/text/template）
 
 
 ### Expected Row Count / Expression
 
-Coppeは期待するクエリ結果として、`row_count:`もしくは`expression:`を利用することができます。
+Coppeは期待するクエリ結果として、`row_count:`もしくは`expression:`を利用可能です。
 
 `row_count:`：クエリ結果の列数
 
@@ -160,11 +160,11 @@ Coppeは期待するクエリ結果として、`row_count:`もしくは`expressi
     expression: table_name == "foo" && error_count > 10
 ```
 
-\* 注意：row_countとexpressionはどちらかしか書くことができません
+\* 注意：row_countとexpressionは、どちらか一方のみ記載可能です
 
 ### Alert Channel
 
-監視項目によって、SLACKの通知チャンネルを使い分けたい場合、環境変数の追加と`channel:`で通知するURLを指定することができます。指定しなかった場合、デフォルトでSLACK_HOOK_URLが使われますが、`channel:`で指定されている場合、SLACK_HOOK_URL_ + `channel:`の値　を環境変数から取得し、通知に使用します。
+監視項目によって、Slackの通知チャンネルを使い分けたい場合、環境変数の追加と`channel:`で通知するURLを指定できます。指定しなかった場合、デフォルトでSLACK_HOOK_URLが使われますが、`channel:`で指定されている場合、SLACK_HOOK_URL_ + `channel:`の値を環境変数から取得し、通知に使用します。
 
 例えば、
 
@@ -172,11 +172,11 @@ Coppeは期待するクエリ結果として、`row_count:`もしくは`expressi
 channel: CRITICAL
 ```
 
-のように指定する場合、環境変数（.env.yaml）に'SLACK_HOOK_URL_CRITICAL'を取得します。もし、環境変数になかった場合は代わりにデフォルトのURLが使用されます。また、`channel:`の値はケース無視（criticalと書いてもCRITICALとして扱われる）ですが、環境変数は大文字で書くようにしてください。
+のように指定する場合、環境変数（.env.yaml）に'SLACK_HOOK_URL_CRITICAL'を取得します。もし、環境変数になかった場合は代わりにデフォルトのURLが使用されます。また、`channel:`の値はケース無視（criticalと書いてもCRITICALとして扱われる）されますが、環境変数は大文字で書くようにしてください。
 
 ### Alert Message
 
-クエリ結果が期待される値でなかった場合、Slackでの通知を行います。アラートメッセージはクエリ結果を利用・展開して書くこともできます。また、SQlに使用したparamsやmatrixも使用することが可能です。
+クエリ結果が期待される値でなかった場合、Slackへの通知を行います。アラートメッセージはクエリ結果を利用・展開して書くこともできます。また、SQLに使用したparamsやmatrixも使用することが可能です。
 
 それぞれの型は、
 - query_result: []map[string]interface{}
@@ -204,21 +204,21 @@ channel: CRITICAL
 ```
 {{ . }}
 ```
-クエリ結果を[]map[string]interface{}のまま、printfする
+で、クエリ結果を[]map[string]interface{}のまま、printfします
 
 ```
 {{ range . }}
 {{ .column_name }}
 {{ end }}
 ```
-クエリ結果をループして表示。column_nameにはクエリで取得したカラム名のみ使用可能。
+クエリ結果をループして表示可能です。なお、column_nameには、クエリで取得したカラム名のみ使用可能です。
 
 ```
 {{ range $i, $row := . }}
 {{　$i }} :  {{ $row.column_name }}
 {{ end }}
 ```
-また、インデックスはこのように取得できる。
+また、インデックスはこのように取得できます。
 
 
 ```
@@ -230,9 +230,9 @@ channel: CRITICAL
 {{ end }}
 {{ end }}
 ```
-if文はこのように書ける。
+if文はこのように記載可能です。
 
-\* テキストテンプレートライブラリを使用していますので、書き方など詳しくは[公式ドキュメント](https://pkg.go.dev/text/template)を参照してください。
+\* テキストテンプレートライブラリを使用しているので、書き方など詳しくは[公式ドキュメント](https://pkg.go.dev/text/template)を参照してください。
 
 ## Contributing
 
@@ -240,4 +240,4 @@ IssueやPull Requestの作成など、コントリビューションは誰でも
 
 ## License
 
-CoppeはMITライセンスを適応してオープンソースとして公開しています
+CoppeはMITライセンスを適応してオープンソースとして公開しています。[LICENSE](./LICENSE.txt) を参照してください。
