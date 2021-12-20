@@ -10,7 +10,7 @@ The following is the architecture of Coppe. Easily deployable on Google Cloud Pl
 
 ## Required Settings
 
-1. Github Actions Secrets
+1. GitHub Actions Secrets
 
 - GOOGLE_APPLICATION_CREDENTIALS_JSON - GCP credential key in JSON format
 
@@ -54,7 +54,7 @@ $ gcloud alpha monitoring channels list | grep 'name:'
 
 ```
 
-3. Push/Merge to main - Github Actions and Terraform will take care of other infrastructure setup and deployment in GCP.
+3. Push/Merge to main - GitHub Actions and Terraform will take care of other infrastructure setup and deployment in GCP.
 
 
 ## Format of YAML file
@@ -72,7 +72,7 @@ For more details and examples, please refer to https://github.com/adhocore/gronx
 
 ### SQL in File
 
-Instead of directly writing SQL in `sql:` row, You can put a path to SQL file in `sql_file:`. Detectable are only files in `sql` directory.
+Instead of directly writing SQL in `sql:` row, you can put a path to SQL file in `sql_file:`. Detectable are only files in `sql` directory.
 
 ```
 - ...
@@ -156,7 +156,7 @@ In `expression:`, you can write an expression that should be true using the colu
 
 ### Alert Channel
 
-You can specify other Slack channel than the default one for alert with `channel:`. For this, You need to add specified Slack Incoming Webhook URL in .env.yaml.
+You can specify other Slack channel than the default one for alert with `channel:`. For this, you need to add specified Slack Incoming Webhook URL in .env.yaml.
 
 By default, the URL used for Slack notification is 'SLACK_HOOK_URL' in .env.yaml if nothing specified in `channel:`. If specified, an environment variable for the word in `channel` followed by 'SLACK_HOOK_URL_' is used. 
 
