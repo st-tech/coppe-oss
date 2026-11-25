@@ -1,8 +1,8 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
-	"strings"
 )
 
 func SendInfoLog(msg string) {
@@ -21,7 +21,16 @@ func SendErrorLog(msg string) {
 	sendLog("error", msg)
 }
 
+type logEntry struct {
+	Message  string `json:"message"`
+	Severity string `json:"severity"`
+}
+
 func sendLog(severity string, msg string) {
-	str := fmt.Sprintf(`{"message": "%s", "severity": "%s"}`, strings.ReplaceAll(msg, "\n", " "), severity)
-	fmt.Println(str)
+	b, err := json.Marshal(logEntry{Message: msg, Severity: severity})
+	if err != nil {
+		fmt.Println(msg)
+		return
+	}
+	fmt.Println(string(b))
 }
